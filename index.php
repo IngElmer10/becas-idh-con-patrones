@@ -8,6 +8,24 @@ require __DIR__ . '/core/Session.php';
 require __DIR__ . '/core/App.php';
 require __DIR__ . '/core/Router.php';
 
+// =========================================================================
+// PATRONES DE DISEÑO GoF
+// =========================================================================
+
+// Patrón 1: Cadena de Responsabilidad (CU04 Cargar Documentación)
+require __DIR__ . '/app/patterns/cadena_responsabilidad/ManejadorDocumento.php';
+require __DIR__ . '/app/patterns/cadena_responsabilidad/ValidadorExtension.php';
+require __DIR__ . '/app/patterns/cadena_responsabilidad/ValidadorTamano.php';
+require __DIR__ . '/app/patterns/cadena_responsabilidad/ValidadorDuplicado.php';
+
+// Patrón 2: Observador (CU08 Publicar Resultados)
+require __DIR__ . '/app/patterns/observador/Observador.php';
+require __DIR__ . '/app/patterns/observador/Sujeto.php';
+require __DIR__ . '/app/patterns/observador/ActualizadorEstadosPostulacion.php';
+require __DIR__ . '/app/patterns/observador/LoggerAuditoriaPublicacion.php';
+require __DIR__ . '/app/patterns/observador/NotificadorEstudiantes.php';
+
+// =========================================================================
 // Controllers / Models (sin autoloader para mantenerlo simple)
 require __DIR__ . '/app/controllers/auth/AuthController.php';
 require __DIR__ . '/app/controllers/convocatoria/ConvocatoriaController.php';

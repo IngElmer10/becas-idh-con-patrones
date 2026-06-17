@@ -11,8 +11,7 @@ return [
         'charset' => 'utf8mb4',
     ],
     'app' => [
-        // Ajusta si lo sirves en un subdirectorio (ej. /becas-idh/public)
-        'base_path' => '/becas-idh',
+        'base_path' => '/becas-idh-con-patrones',
     ],
 ];
 
