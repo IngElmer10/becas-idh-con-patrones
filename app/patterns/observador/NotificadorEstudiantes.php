@@ -2,35 +2,18 @@
 
 declare(strict_types=1);
 
-/**
- * NotificadorEstudiantes — Observador Concreto 3 (GoF Observer).
- *
- * Al recibir la notificación de publicación, simula el envío de correos
- * escribiendo una cola de mensajes personalizados en el archivo 'logs/mail_queue.log'
- * para cada estudiante evaluado.
- *
- * Patrón: Observer
- * Caso de uso: CU08 Publicar Resultados
- */
+// Observador concreto para simular el envio de correos
 final class NotificadorEstudiantes implements Observador
 {
     private string $rutaLog;
 
     public function __construct(?string $rutaLog = null)
     {
-        // Ruta por defecto: <raiz_proyecto>/logs/mail_queue.log
         $this->rutaLog = $rutaLog
             ?? __DIR__ . '/../../../logs/mail_queue.log';
     }
 
-    /**
-     * Simula el envío de correos escribiendo en la cola de mensajes.
-     *
-     * @param array $datos Contexto del evento:
-     *                     - 'id_convocatoria' (int)
-     *                     - 'cupos'           (int)
-     *                     - 'evaluadas'       (array)
-     */
+    // Escribe los correos simulados en un archivo de texto
     public function actualizar(array $datos): void
     {
         $dir = dirname($this->rutaLog);

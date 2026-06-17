@@ -2,40 +2,18 @@
 
 declare(strict_types=1);
 
-/**
- * LoggerAuditoriaPublicacion — Observador Concreto 2 (GoF Observer).
- *
- * Al recibir la notificación de publicación, registra en un archivo de log
- * que los resultados de la convocatoria fueron publicados oficialmente.
- * Incluye: fecha/hora UTC, id_convocatoria, cupos y número de postulaciones
- * procesadas.
- *
- * El archivo de log se escribe en: /logs/auditoria_publicaciones.log
- * (relativo a la raíz del proyecto). La carpeta se crea automáticamente si
- * no existe.
- *
- * Patrón: Observer
- * Caso de uso: CU08 Publicar Resultados
- */
+// Observador concreto para guardar logs de la publicacion
 final class LoggerAuditoriaPublicacion implements Observador
 {
     private string $rutaLog;
 
     public function __construct(?string $rutaLog = null)
     {
-        // Ruta por defecto: <raiz_proyecto>/logs/auditoria_publicaciones.log
         $this->rutaLog = $rutaLog
             ?? __DIR__ . '/../../../logs/auditoria_publicaciones.log';
     }
 
-    /**
-     * Escribe una entrada de auditoría en el archivo de log.
-     *
-     * @param array $datos Contexto del evento:
-     *                     - 'id_convocatoria' (int)
-     *                     - 'cupos'           (int)
-     *                     - 'evaluadas'       (array)
-     */
+    // Guarda una linea de auditoria en el archivo log
     public function actualizar(array $datos): void
     {
         $dir = dirname($this->rutaLog);

@@ -2,15 +2,7 @@
 
 declare(strict_types=1);
 
-/**
- * ValidadorTamano — Eslabón 3 de la Cadena de Responsabilidad (GoF).
- *
- * Valida que el archivo subido no supere el tamaño máximo permitido.
- * El límite por defecto es 5 MB (5 × 1024 × 1024 bytes).
- *
- * Patrón: Chain of Responsibility
- * Caso de uso: CU04 Cargar Documentación
- */
+// Validador de tamano maximo del archivo
 final class ValidadorTamano extends ManejadorDocumento
 {
     private int $maxBytes;
@@ -20,13 +12,7 @@ final class ValidadorTamano extends ManejadorDocumento
         $this->maxBytes = $maxBytes;
     }
 
-    /**
-     * Verifica que el tamaño del archivo no supere el límite configurado.
-     *
-     * @param array $archivo  Entrada de $_FILES['archivo']
-     * @param array $contexto Datos del contexto
-     * @throws \RuntimeException si el archivo es demasiado grande
-     */
+    // Comprueba que el archivo no supere el tamano limite
     public function procesar(array $archivo, array $contexto): void
     {
         $size = (int)($archivo['size'] ?? 0);

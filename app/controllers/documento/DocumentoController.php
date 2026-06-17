@@ -2,17 +2,8 @@
 
 declare(strict_types=1);
 
-/**
- * DocumentoController — CU04 Cargar Documentación.
- *
- * REFACTORIZADO con el patrón Cadena de Responsabilidad (GoF).
- *
- * El método doUpload() ya no contiene condicionales anidados para validar
- * el archivo. En su lugar, construye una cadena de manejadores (ValidadorExtension
- * → ValidadorTamano → ValidadorDuplicado) y la ejecuta de forma desacoplada.
- * Si cualquier eslabón rechaza el archivo lanza una RuntimeException que el
- * controlador captura y convierte en mensaje de error de sesión.
- */
+// Controlador para la gestion de documentos de postulacion
+// Maneja la subida de los archivos de requisitos
 final class DocumentoController
 {
     public function misPostulaciones(): void
@@ -63,15 +54,7 @@ final class DocumentoController
         unset($_SESSION['form_errors'], $_SESSION['flash'], $_SESSION['flash_error']);
     }
 
-    /**
-     * Procesa la subida de un archivo utilizando la Cadena de Responsabilidad.
-     *
-     * Flujo:
-     *   1. Valida sesión y postulación (lógica de negocio preexistente).
-     *   2. Construye la cadena: ValidadorDuplicado → ValidadorExtension → ValidadorTamano.
-     *   3. Ejecuta la cadena; captura RuntimeException si algún eslabón falla.
-     *   4. Si la cadena pasa, guarda el archivo en disco y registra en DocumentoModel.
-     */
+    // Sube el archivo aplicando los validadores en cadena
     public function doUpload(): void
     {
         require_auth(['estudiante']);
@@ -80,10 +63,7 @@ final class DocumentoController
         $idReq = (int) ($_POST['id_requisito'] ?? 0);
         $replace = (int) ($_POST['replace'] ?? 0) === 1;
 
-        // -----------------------------------------------------------------
-        // Validaciones de negocio: propiedad de la postulación y requisito
-        // (lógica preexistente, no cambia)
-        // -----------------------------------------------------------------
+        // Validaciones generales de la postulacion y requisitos
         $postModel = new PostulacionModel();
         $post = $postModel->find($idPost);
         if (!$post || (int) $post['id_usuario'] !== (int) $_SESSION['user']['id']) {
@@ -116,10 +96,7 @@ final class DocumentoController
             redirect_to('documento/upload?id_post=' . $idPost);
         }
 
-        // -----------------------------------------------------------------
-        // PATRÓN CADENA DE RESPONSABILIDAD
-        // Construcción de la cadena: duplicado → extensión → tamaño
-        // -----------------------------------------------------------------
+        // Creamos la cadena de validacion: duplicado -> extension -> tamano
         $docModel = new DocumentoModel();
         $docMap = $docModel->estadoPorRequisito($idPost);
 
@@ -127,7 +104,7 @@ final class DocumentoController
         $validadorExtension = new ValidadorExtension();
         $validadorTamano = new ValidadorTamano();
 
-        // Encadenamiento fluido
+        // Enlazamos los validadores en orden
         $validadorDuplicado
             ->setNext($validadorExtension);
         $validadorExtension
@@ -142,16 +119,14 @@ final class DocumentoController
         ];
 
         try {
-            // Dispara la cadena completa
+            // Ejecutamos la cadena de validaciones
             $validadorDuplicado->procesar($f, $contexto);
         } catch (\RuntimeException $e) {
             $_SESSION['flash_error'] = $e->getMessage();
             redirect_to('documento/upload?id_post=' . $idPost);
         }
 
-        // -----------------------------------------------------------------
-        // Todos los eslabones pasaron: guardar archivo y registrar en BD
-        // -----------------------------------------------------------------
+        // Si todo esta bien, guardamos el archivo y registramos en la BD
         $ext = strtolower(pathinfo((string) ($f['name'] ?? ''), PATHINFO_EXTENSION));
         $targetDir = __DIR__ . '/../../../public/uploads/' . $idPost;
         if (!is_dir($targetDir)) {
@@ -169,7 +144,7 @@ final class DocumentoController
         $publicPath = '/public/uploads/' . $idPost . '/' . $safeName;
         $docModel->upsert($idPost, $idReq, $publicPath, 'recibido', null);
 
-        // Post-condición del flujo: avanzar estado de la postulación
+        // Actualizamos el estado de la postulacion a revision inicial
         if (($post['estado'] ?? '') === 'pendiente_documentos') {
             $postModel->setEstado($idPost, 'en_revision_inicial');
         }

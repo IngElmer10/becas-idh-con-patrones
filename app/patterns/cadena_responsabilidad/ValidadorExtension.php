@@ -2,18 +2,10 @@
 
 declare(strict_types=1);
 
-/**
- * ValidadorExtension — Eslabón 2 de la Cadena de Responsabilidad (GoF).
- *
- * Valida que el archivo subido tenga una extensión permitida
- * (pdf, jpg, jpeg, png).
- *
- * Patrón: Chain of Responsibility
- * Caso de uso: CU04 Cargar Documentación
- */
+// Validador de las extensiones de archivos permitidas
 final class ValidadorExtension extends ManejadorDocumento
 {
-    /** @var string[] Extensiones permitidas */
+    // Array de extensiones validas
     private array $extensionesPermitidas;
 
     public function __construct(array $extensionesPermitidas = ['pdf', 'jpg', 'jpeg', 'png'])
@@ -21,13 +13,7 @@ final class ValidadorExtension extends ManejadorDocumento
         $this->extensionesPermitidas = $extensionesPermitidas;
     }
 
-    /**
-     * Verifica que el nombre del archivo tenga una extensión válida.
-     *
-     * @param array $archivo  Entrada de $_FILES['archivo']
-     * @param array $contexto Datos del contexto (id_postulacion, id_requisito, etc.)
-     * @throws \RuntimeException si la extensión no está permitida
-     */
+    // Valida que el archivo tenga una extension correcta
     public function procesar(array $archivo, array $contexto): void
     {
         $nombre = (string)($archivo['name'] ?? '');

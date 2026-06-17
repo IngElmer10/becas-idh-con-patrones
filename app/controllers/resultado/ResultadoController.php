@@ -2,24 +2,11 @@
 
 declare(strict_types=1);
 
-/**
- * ResultadoController — CU08 Publicar Resultados.
- *
- * REFACTORIZADO con el patrón Observador (GoF).
- *
- * El controlador implementa la interfaz Sujeto, gestionando una lista de
- * observadores. Al confirmar la publicación, el método publicar() invoca
- * notificar(), que dispara en cadena a todos los observadores registrados
- *   (ActualizadorEstadosPostulacion, LoggerAuditoriaPublicacion y NotificadorEstudiantes) antes de
- * enviar la respuesta final a la vista.
- *
- * La lógica de negocio original (transacción PDO, upsert en ResultadoModel)
- * se preserva íntegramente; sólo se traslada la actualización masiva de estados
- * de postulaciones y el logging al interior de los observadores.
- */
+// Controlador para publicar resultados
+// Implementa el patron Observer
 final class ResultadoController implements Sujeto
 {
-    /** @var Observador[] Lista de observadores suscritos */
+    // Lista de observadores
     private array $observadores = [];
 
     // -------------------------------------------------------------------------
@@ -28,7 +15,7 @@ final class ResultadoController implements Sujeto
 
     public function adjuntar(Observador $observador): void
     {
-        // Evita duplicados usando comparación por identidad de objeto
+        // Evita repetidos en la lista
         if (!in_array($observador, $this->observadores, true)) {
             $this->observadores[] = $observador;
         }
@@ -71,16 +58,7 @@ final class ResultadoController implements Sujeto
         unset($_SESSION['flash'], $_SESSION['flash_error']);
     }
 
-    /**
-     * Publica los resultados de una convocatoria.
-     *
-     * Flujo refactorizado con el patrón Observador:
-     *   1. Valida convocatoria y postulaciones (lógica de negocio preexistente).
-     *   2. Registra los resultados en la tabla 'resultados' dentro de una transacción.
-     *   3. Adjunta los observadores al sujeto (this).
-     *   4. Invoca notificar() → los observadores actualizan estados y escriben el log.
-     *   5. Confirma la transacción y redirige.
-     */
+    // Publica los resultados y notifica a los observadores
     public function publicar(): void
     {
         require_auth(['administrador']);
@@ -88,9 +66,7 @@ final class ResultadoController implements Sujeto
         $idConv = (int) ($_POST['id_convocatoria'] ?? 0);
         $cupos = max(1, (int) ($_POST['cupos'] ?? 10));
 
-        // -----------------------------------------------------------------
-        // Validaciones de negocio (lógica preexistente)
-        // -----------------------------------------------------------------
+        // Validaciones previas de la convocatoria
         $convModel = new ConvocatoriaModel();
         $conv = $convModel->find($idConv);
         if (!$conv) {
@@ -116,18 +92,12 @@ final class ResultadoController implements Sujeto
             redirect_to('resultado');
         }
 
-        // -----------------------------------------------------------------
-        // PATRÓN OBSERVADOR
-        // Registro de observadores concretos en el sujeto (this)
-        // -----------------------------------------------------------------
+        // Registramos los observadores en el controlador
         $this->adjuntar(new ActualizadorEstadosPostulacion());
         $this->adjuntar(new LoggerAuditoriaPublicacion());
         $this->adjuntar(new NotificadorEstudiantes());
 
-        // -----------------------------------------------------------------
-        // Transacción PDO: inserta/actualiza filas en 'resultados'
-        // (lógica de negocio preexistente, sin cambios)
-        // -----------------------------------------------------------------
+        // Registramos en BD usando transaccion
         $resModel = new ResultadoModel();
 
         try {
@@ -145,10 +115,7 @@ final class ResultadoController implements Sujeto
                 ]);
             }
 
-            // -----------------------------------------------------------------
-            // Notificación a los observadores (dentro de la misma transacción,
-            // para garantizar atomicidad con los UPDATE de postulaciones)
-            // -----------------------------------------------------------------
+            // Notificamos a todos los observadores registrados
             $this->notificar([
                 'id_convocatoria' => $idConv,
                 'cupos' => $cupos,
